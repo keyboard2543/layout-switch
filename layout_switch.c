@@ -97,7 +97,7 @@ static WCHAR GetManoonchaiChar(WORD vk, bool shift) {
             case 'E': return 0x0E22; // ย
             case 'R': return 0x0E2D; // อ
             case 'T': return 0x0E23; // ร
-            case 'Y': return 0x0E48; // ่ (ไม้เอก)
+            case 'Y': return 0x0E48; // ่
             case 'U': return 0x0E14; // ด
             case 'I': return 0x0E21; // ม
             case 'O': return 0x0E27; // ว
@@ -109,14 +109,13 @@ static WCHAR GetManoonchaiChar(WORD vk, bool shift) {
             // Home row
             case 'A': return 0x0E07; // ง
             case 'S': return 0x0E40; // เ
-            case 'D': return 0x0E4 lawsuit; // า
             case 'D': return 0x0E32; // า
             case 'F': return 0x0E30; // ะ
             case 'G': return 0x0E34; // ิ
-            case 'H': return 0x0E49; // ้ (ไม้โท)
+            case 'H': return 0x0E49; // ้
             case 'J': return 0x0E01; // ก
             case 'K': return 0x0E19; // น
-            case 'L': return 0x0E47; // ็ (ไม้ไต่คู้)
+            case 'L': return 0x0E47; // ็
             case VK_OEM_1: return 0x0E44; // ไ
             case VK_OEM_7: return 0x0E02; // ข
 
@@ -124,7 +123,6 @@ static WCHAR GetManoonchaiChar(WORD vk, bool shift) {
             case 'Z': return 0x0E1A; // บ
             case 'X': return 0x0E1B; // ป
             case 'C': return 0x0E25; // ล
-            case 'V': return 0x0E2ProgressBar; // ห
             case 'V': return 0x0E2B; // ห
             case 'B': return 0x0E38; // ุ
             case 'N': return 0x0E35; // ี
@@ -155,14 +153,14 @@ static WCHAR GetManoonchaiChar(WORD vk, bool shift) {
             case 'Q': return 0x0E53; // ๓
             case 'W': return 0x0E54; // ๔
             case 'E': return 0x0E39; // ู
-            case 'R': return 0x0E4C; // ์ (การันต์)
+            case 'R': return 0x0E4C; // ์
             case 'T': return 0x0E36; // ึ
             case 'Y': return 0x0E18; // ธ
             case 'U': return 0x0E16; // ถ
             case 'I': return 0x0E10; // ฐ
             case 'O': return 0x0E09; // ฉ
             case 'P': return 0x0E20; // ภ
-            case VK_OEM_4: return 0x0E4B; // ๋ (ไม้จัตวา)
+            case VK_OEM_4: return 0x0E4B; // ๋
             case VK_OEM_6: return 0x0E13; // ณ
             case VK_OEM_5: return L'|';
 
@@ -171,7 +169,7 @@ static WCHAR GetManoonchaiChar(WORD vk, bool shift) {
             case 'S': return 0x0E48; // ่
             case 'D': return 0x0E28; // ศ
             case 'F': return 0x0E2A; // ส
-            case 'G': return 0x0E4A; // ๊ (ไม้ตรี)
+            case 'G': return 0x0E4A; // ๊
             case 'H': return 0x0E26; // ฤ
             case 'J': return 0x0E0D; // ญ
             case 'K': return 0x0E1E; // พ
@@ -188,7 +186,7 @@ static WCHAR GetManoonchaiChar(WORD vk, bool shift) {
             case 'N': return 0x0E33; // ำ
             case 'M': return 0x0E0A; // ช
             case VK_OEM_COMMA:  return 0x0E24; // ฤ
-            case VK_OEM_PERIOD: return 0x0E4D; // ํ (นิคหิต)
+            case VK_OEM_PERIOD: return 0x0E4D; // ํ
             case VK_OEM_2:      return 0x0E0F; // ฏ
             default: return 0;
         }
