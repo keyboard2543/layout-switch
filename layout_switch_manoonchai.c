@@ -133,17 +133,6 @@ static bool IsCurrentLayoutThai(void) {
     return (langId == 0x1E);
 }
 
-// จำลองการส่ง Keystroke ใหม่พร้อม Flag กำกับ
-static void SendSynthesizedVk(WORD vkCode, bool keyUp) {
-    INPUT input = {0};
-    input.type = INPUT_KEYBOARD;
-    input.ki.wVk = vkCode;
-    input.ki.wScan = (WORD)MapVirtualKeyW(vkCode, MAPVK_VK_TO_VSC);
-    input.ki.dwFlags = keyUp ? KEYEVENTF_KEYUP : 0;
-    input.ki.dwExtraInfo = INJECTED_KEY_FLAG;
-    SendInput(1, &input, sizeof(INPUT));
-}
-
 // ส่งตัวอักษร Unicode UTF-16
 static void SendUnicodeChar(WCHAR ch) {
     INPUT input[2] = {0};
@@ -159,30 +148,6 @@ static void SendUnicodeChar(WCHAR ch) {
     input[1].ki.dwExtraInfo = INJECTED_KEY_FLAG;
 
     SendInput(2, input, sizeof(INPUT));
-}
-
-// QWERTY -> Colemak VK Remapping (Standard Colemak Layout)
-static WORD GetColemakVK(WORD vk) {
-    switch (vk) {
-        case 'E': return 'F';
-        case 'R': return 'P';
-        case 'T': return 'G';
-        case 'Y': return 'J';
-        case 'U': return 'L';
-        case 'I': return 'U';
-        case 'O': return 'Y';
-        case 'P': return VK_OEM_1; // Semicolon (;)
-        case 'S': return 'R';
-        case 'D': return 'S';
-        case 'F': return 'T';
-        case 'G': return 'D';
-        case 'J': return 'N';
-        case 'K': return 'E';
-        case 'L': return 'I';
-        case VK_OEM_1: return 'O'; // Semicolon (;) -> O
-        case 'N': return 'K';
-        default:  return vk;
-    }
 }
 
 // QWERTY -> ผังมนูญชัย (Manoonchai Layout - Official kiimo)
@@ -340,7 +305,7 @@ static WCHAR GetManoonchaiAltGrChar(WORD vk) {
     }
 }
 
-// Callback ดักจับคีย์บอร์ด
+// Callback ดักจับคีย์บอร์ดสำหรับ Manoonchai
 static LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode == HC_ACTION) {
         KBDLLHOOKSTRUCT *p = (KBDLLHOOKSTRUCT *)lParam;
@@ -358,18 +323,22 @@ static LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lP
         bool shiftDown = (GetAsyncKeyState(VK_SHIFT)   & 0x8000) != 0;
 
         // ปุ่มลัดฉุกเฉินสำหรับปิดโปรแกรม: Ctrl + Alt + Shift + Q
+        // ส่งต่อสัญญาณเพื่อให้ instance อื่นๆ ปิดตัวลงพร้อมกันด้วย
         if (ctrlDown && altDown && shiftDown && p->vkCode == 'Q') {
             PostQuitMessage(0);
             return CallNextHookEx(g_hHook, nCode, wParam, lParam);
         }
 
-        bool isThai = IsCurrentLayoutThai();
+        // ตรวจสอบภาษาปัจจุบัน ถ้าไม่ใช่ภาษาไทย ให้ปล่อยผ่านทันที
+        if (!IsCurrentLayoutThai()) {
+            return CallNextHookEx(g_hHook, nCode, wParam, lParam);
+        }
 
         // ตรวจสอบ Right Alt (AltGr) สำหรับโหมดภาษาไทย
         bool rAltDown = (GetAsyncKeyState(VK_RMENU) & 0x8000) != 0;
         bool lCtrlDown = (GetAsyncKeyState(VK_LCONTROL) & 0x8000) != 0;
 
-        if (isThai && rAltDown && !lCtrlDown) {
+        if (rAltDown && !lCtrlDown) {
             WCHAR altGrChar = GetManoonchaiAltGrChar((WORD)p->vkCode);
             if (altGrChar != 0) {
                 if (isKeyDown) {
@@ -384,25 +353,16 @@ static LRESULT CALLBACK LowLevelKeyboardProc(int nCode, WPARAM wParam, LPARAM lP
             return CallNextHookEx(g_hHook, nCode, wParam, lParam);
         }
 
-        if (isThai) {
-            // โหมดภาษาไทย: Manoonchai Layout
-            bool capsLock = (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
-            bool isShifted = shiftDown ^ capsLock;
-            WCHAR targetChar = GetManoonchaiChar((WORD)p->vkCode, isShifted);
+        // โหมดภาษาไทย: แปลงเป็น Manoonchai Layout
+        bool capsLock = (GetKeyState(VK_CAPITAL) & 0x0001) != 0;
+        bool isShifted = shiftDown ^ capsLock;
+        WCHAR targetChar = GetManoonchaiChar((WORD)p->vkCode, isShifted);
 
-            if (targetChar != 0) {
-                if (isKeyDown) {
-                    SendUnicodeChar(targetChar);
-                }
-                return 1; // บล็อกคีย์เดิม
+        if (targetChar != 0) {
+            if (isKeyDown) {
+                SendUnicodeChar(targetChar);
             }
-        } else {
-            // โหมดภาษาอังกฤษ: Colemak Layout
-            WORD targetVk = GetColemakVK((WORD)p->vkCode);
-            if (targetVk != p->vkCode) {
-                SendSynthesizedVk(targetVk, isKeyUp);
-                return 1; // บล็อกคีย์เดิม
-            }
+            return 1; // บล็อกคีย์เดิม
         }
     }
 
@@ -420,10 +380,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         g_driveRoot[3] = L'\0';
     }
 
-    // ป้องกันการเปิดรันซ้ำซ้อน
-    g_hMutex = CreateMutexW(NULL, TRUE, L"Global\\ManoonchaiColemakSwitcherMutex");
+    // ป้องกันการเปิดรันซ้ำซ้อนสำหรับ Manoonchai
+    g_hMutex = CreateMutexW(NULL, TRUE, L"Global\\ManoonchaiSwitcherMutex");
     if (GetLastError() == ERROR_ALREADY_EXISTS) {
-        MessageBoxW(NULL, L"โปรแกรมทำงานอยู่ในระบบแล้ว", L"Info", MB_OK | MB_ICONINFORMATION);
+        MessageBoxW(NULL, L"โปรแกรม Manoonchai Switcher ทำงานอยู่ในระบบแล้ว", L"Info", MB_OK | MB_ICONINFORMATION);
         return 0;
     }
 
@@ -431,13 +391,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     WNDCLASSW wc = {0};
     wc.lpfnWndProc = MonitorWndProc;
     wc.hInstance = hInstance;
-    wc.lpszClassName = L"LayoutSwitchMonitorClass";
+    wc.lpszClassName = L"ManoonchaiSwitchMonitorClass";
     RegisterClassW(&wc);
 
     g_hWndMonitor = CreateWindowExW(
         0,
         wc.lpszClassName,
-        L"LayoutSwitchMonitor",
+        L"ManoonchaiSwitchMonitor",
         0,
         0, 0, 0, 0,
         NULL, NULL, hInstance, NULL
