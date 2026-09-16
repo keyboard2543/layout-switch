@@ -23,25 +23,25 @@ jobs:
 
       - name: Compile
         run: |
-          gcc -O2 -s -mwindows layout_switch.c -o layout-switch.exe -luser32
           gcc -O2 -s -mwindows layout_switch_colemak.c -o layout-switch-colemak.exe -luser32
           gcc -O2 -s -mwindows layout_switch_manoonchai.c -o layout-switch-manoonchai.exe -luser32
+          gcc -O2 -s -mwindows layout_switch_colemak_manoonchai.c -o layout-switch-colemak-manoonchai.exe -luser32
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: layout-switch-binaries
           path: |
-            layout-switch.exe
             layout-switch-colemak.exe
             layout-switch-manoonchai.exe
+            layout-switch-colemak-manoonchai.exe
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            layout-switch.exe
             layout-switch-colemak.exe
             layout-switch-manoonchai.exe
+            layout-switch-colemak-manoonchai.exe
           generate_release_notes: true
