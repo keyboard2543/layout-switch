@@ -14,7 +14,7 @@ def type_and_enter(text):
     layout.write(text)
     kbd.send(Keycode.ENTER)
 
-# เปิด Run
+# เปิดหน้าต่าง Run (Win + R)
 kbd.send(Keycode.GUI, Keycode.R)
 time.sleep(0.4)
 
