@@ -5,7 +5,7 @@ from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS
 from adafruit_hid.keycode import Keycode
 
 # 1. รอให้ USB เชื่อมต่อสมบูรณ์
-time.sleep(1.0)
+time.sleep(2.5)
 
 kbd = Keyboard(usb_hid.devices)
 layout = KeyboardLayoutUS(kbd)
